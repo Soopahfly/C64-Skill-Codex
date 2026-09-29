@@ -1,0 +1,13 @@
+interface:
+  display_name: Commodore 64 Development
+  short_description: Build C64 software with KickAssembler
+  default_prompt: Use $commodore-64-development to create a PAL C64 program in KickAssembler.
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true
