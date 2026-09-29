@@ -1,0 +1,14 @@
+interface:
+  display_name: 6502 Assembly
+  short_description: Write and debug NMOS 6502 assembly
+  default_prompt: Use $6502-assembly to review this 6502 routine for correctness and
+    timing.
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true
