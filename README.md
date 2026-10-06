@@ -48,3 +48,54 @@ x64sc.exe -autostart .\sid-sound-test.prg
 ```
 
 Replace `sid-sound-test` in both commands with any of the other source names. If `x64sc.exe` is not on your PATH, use its full path with PowerShell's `&` call operator.
+
+## Run from a disk image
+
+A PRG is one program file. A D64 is a disk image containing a directory and files, as a 1541 disk would. Autostart hides the loading steps; this exercise makes them explicit.
+
+Build `border-colour.prg` with the commands above. VICE includes `c1541.exe`; add its directory to PATH or invoke its full path with PowerShell's `&` operator. Create a new practice image and add the program:
+
+```powershell
+if (Test-Path .\practice.d64) { throw "practice.d64 already exists; choose another filename." }
+c1541.exe -format "PRACTICE,01" d64 .\practice.d64
+c1541.exe -attach .\practice.d64 -write .\border-colour.prg BORDER
+c1541.exe -attach .\practice.d64 -list
+x64sc.exe -pal -8 .\practice.d64
+```
+
+The guard avoids formatting an existing image. Run one command at a time and stop on errors. The directory should contain `BORDER` as a PRG. At the C64 BASIC prompt, type:
+
+```basic
+LOAD "$",8
+LIST
+LOAD "BORDER",8,1
+RUN
+```
+
+Loading the directory replaces the BASIC program in memory, so load the test afterwards. `8` selects drive 8; `,1` loads the PRG at its stored address. This test includes a BASIC launcher, so `RUN` starts it. A bare machine-code PRG may instead require its documented `SYS` address.
+
+### Save and reload data
+
+Build `storage-roundtrip.asm` with `-symbolfile`, then add the result to the same writable practice disk:
+
+```powershell
+java -jar .\KickAss.jar .\storage-roundtrip.asm -o .\storage-roundtrip.prg -symbolfile
+c1541.exe -attach .\practice.d64 -write .\storage-roundtrip.prg STORAGE
+```
+
+Close VICE before modifying its attached image with c1541, then reopen with `x64sc.exe -pal -8 .\practice.d64`. Use `LOAD "STORAGE",8,1`, then `RUN`. The test saves four bytes as `C64DATA`, clears its buffer, reloads and compares them. Green means the round trip passed; red means a transfer, drive-status, length or data check failed. Disk activity can take time.
+
+The test deliberately does not overwrite an existing `C64DATA`: running it a second time should fail with DOS code 63 (file exists). Use a fresh practice image for another successful run. See [KERNAL load/save contracts and diagnostics](skills/commodore-64-development/references/kernal.md#load-and-save-a-small-data-block). Do not format or scratch files on a disk containing data you want to keep.
+
+After returning to BASIC, `LOAD "$",8` and `LIST` should show `C64DATA`. For a failure, inspect the test's diagnostic variables before loading the directory. To inspect the drive's current status from BASIC:
+
+```basic
+OPEN 15,8,15
+INPUT#15,E,M$,T,S
+PRINT E;M$;T;S
+CLOSE 15
+```
+
+Reading the error channel acknowledges its status, so the test's captured digits are the useful record of an earlier error.
+
+Sources: [VICE c1541 commands](https://vice-emu.sourceforge.io/vice_14.html), [VICE C64 command-line options](https://vice-emu.sourceforge.io/vice_7.html).
