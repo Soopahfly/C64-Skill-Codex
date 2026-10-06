@@ -43,7 +43,7 @@ Run each test in a fresh VICE window, especially the VIC bank, raster IRQ, and S
 Put `KickAss.jar` beside these source files, or adjust its path in the command. From this directory:
 
 ```powershell
-java -jar .\KickAss.jar .\sid-sound-test.asm -o .\sid-sound-test.prg
+java -jar .\KickAss.jar .\sid-sound-test.asm -o .\sid-sound-test.prg -symbolfile
 x64sc.exe -autostart .\sid-sound-test.prg
 ```
 
