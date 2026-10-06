@@ -99,3 +99,35 @@ CLOSE 15
 Reading the error channel acknowledges its status, so the test's captured digits are the useful record of an earlier error.
 
 Sources: [VICE c1541 commands](https://vice-emu.sourceforge.io/vice_14.html), [VICE C64 command-line options](https://vice-emu.sourceforge.io/vice_7.html).
+
+## When a test fails
+
+Start with the symptom below. Keep the first error message, change one thing, rebuild after source edits, and use a fresh VICE window for another test.
+
+| Symptom | First check | Next step |
+| --- | --- | --- |
+| PowerShell cannot find `java` | Run `java -version`. | Install a Java runtime if missing; reopen PowerShell after updating PATH. |
+| Java cannot access `KickAss.jar` | Check the current directory and JAR path. | Use its full quoted path in the [build command](#build-and-run-on-windows-powershell). |
+| PowerShell cannot find `x64sc.exe` or `c1541.exe` | Locate the executables in your VICE installation. | Use `& "C:\\path\\to\\x64sc.exe"` followed by its arguments, or add that directory to PATH. |
+| Assembly fails | Read the first reported error and its source line. | Confirm KickAssembler syntax and documented NMOS instructions; consult [KickAssembler](skills/commodore-64-development/references/kickassembler.md). Stop before launching a stale PRG. |
+| Symbols are missing | Check that the build includes `-symbolfile`. | Look for the source basename's `.sym` beside the source, even when `-o` writes the PRG elsewhere. Rebuild symbols after edits. |
+| The old result appears after an edit | Check the build succeeded and VICE loaded the intended PRG path. | Close the old window, rebuild, and launch the new file using the [commands](#build-and-run-on-windows-powershell). |
+| Loading finishes but the program does not start | Check whether the PRG has a BASIC launcher or needs a documented SYS entry. | Repository tests use `RUN`; distinguish load and execution addresses in the [memory map](skills/commodore-64-development/references/memory-map.md). |
+| Joystick input does nothing | Check the host keyset/controller is assigned to C64 port 2. | Try numpad fire (0) with the numpad preset. Follow the [joystick example](skills/commodore-64-development/references/input.md#worked-joystick-polling-example). |
+| A key no longer exits a changed test | Check KERNAL IRQ scanning still runs and the key is outside the joystick keyset. | Compare with the unchanged source; review [input](skills/commodore-64-development/references/input.md) and [CIA/IRQ ownership](skills/commodore-64-development/references/cia.md). |
+| Disk LOAD reports file not found | List drive 8's directory and confirm its exact filename. | Attach the intended D64 to drive 8 and follow the [disk workflow](#run-from-a-disk-image). |
+| The storage test returns a red border | Inspect its diagnostics before loading the directory. | Decode KERNAL, bus and DOS results using [storage diagnostics](skills/commodore-64-development/references/kernal.md#load-and-save-a-small-data-block). A second run intentionally fails if C64DATA already exists. |
+| A monitor breakpoint never triggers | Check the program is loaded and the breakpoint uses the current symbol address. | Start through BASIC `RUN` and follow the [debugging session](skills/commodore-64-development/references/kickassembler.md#first-vice-debugging-session). |
+
+For a useful fault report, include the source name, the edit, the exact build/run commands, the first error, and the selected VICE video standard. For storage failures, also include the captured diagnostics and attached disk filename. State whether it fails with the unchanged example in a fresh window.
+
+### Validation still to run
+
+Assembly or CPU tests with mocked KERNAL calls do not validate disk emulation, controller mappings or physical hardware. When VICE is available, use these checks:
+
+- Follow the border-test monitor walkthrough, including returning to BASIC.
+- Run the joystick example: press, hold, release, press again, then exit with a non-joystick keyboard key.
+- On a fresh writable D64, run the storage example once (green), then again (red, DOS 63). Repeat on a fresh read-only image and confirm failure; restore write access afterwards.
+- Confirm the disk directory and saved bytes, and record VICE version, machine model, results and any physical-controller checks.
+
+Keep these checks marked outstanding until actually run. Leave real-hardware compatibility unclaimed until tested on the target.
